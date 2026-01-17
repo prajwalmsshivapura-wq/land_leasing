@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AgroConnect</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{margin:0;font-family:Arial;background:#eef5ee}
+.hidden{display:none}
+header{
+background:url('https://www.grupotordesillas.net/wp-content/uploads/2024/12/ufscar-destaque-em-evento-internacional-de-bioenergia.jpg') center/cover;
+color:white;padding:40px;text-align:center}
+.card{
+background:white;padding:20px;margin:20px auto;
+max-width:900px;border-radius:12px;
+box-shadow:0 4px 10px rgba(0,0,0,.2)}
+button{
+padding:12px;margin:8px 0;width:100%;
+background:#2e7d32;color:white;
+border:none;border-radius:8px;font-size:16px}
+button:hover{background:#1b5e20}
+input,select{
+width:100%;padding:10px;margin-top:5px;
+border-radius:6px;border:1px solid #ccc}
+.nav{
+display:flex;justify-content:space-between}
+.back{background:#757575}
+img{
+width:100%;
+max-height:200px;
+object-fit:cover;
+border-radius:10px;
+margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🌱 AgroConnect</h1>
+<p>Smart Land Leasing Platform</p>
+</header>
+
+<!-- LOGIN -->
+<div class="card" id="login">
+<h2>Login</h2>
+<input id="phone" placeholder="Mobile Number" maxlength="10" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+<input id="country" placeholder="Country">
+<input id="location" placeholder="Location">
+<select>
+<option>English</option>
+</select>
+<button onclick="login()">Next</button>
+</div>
+
+<!-- SERVICES -->
+<div class="card hidden" id="services">
+<h2>Select Service</h2>
+<button onclick="go('land')">🌱 Land Leasing</button>
+<div class="nav">
+<button class="back" onclick="go('login')">⬅ Back</button>
+</div>
+</div>
+
+<!-- LAND -->
+<div class="card hidden" id="land">
+<h2>Land Options</h2>
+<button onclick="go('farmer')">Farmer</button>
+<button onclick="showLands()">Land Taker</button>
+<div class="nav">
+<button class="back" onclick="go('services')">⬅ Back</button>
+</div>
+</div>
+
+<!-- FARMER -->
+<div class="card hidden" id="farmer">
+<h2>Add Land Details</h2>
+<input id="fname" placeholder="Farmer Name">
+<input id="loc" placeholder="Land Location">
+<input id="area" type="number" placeholder="Area (Acres)">
+<select id="soil">
+<option>Black</option>
+<option>Red</option>
+<option>Sandy</option>
+<option>mountain soil</option>
+<option>other</option>
+</select>
+<input id="price" type="number" placeholder="Price per Acre for one year">
+<input type="file" id="photo" accept="image/*">
+<button onclick="saveLand()">Submit</button>
+<div class="nav">
+<button class="back" onclick="go('land')">⬅ Back</button>
+</div>
+</div>
+
+<!-- LAND TAKER -->
+<div class="card hidden" id="taker">
+<h2>Available Lands</h2>
+<div id="landList"></div>
+<div class="nav">
+<button class="back" onclick="go('land')">⬅ Back</button>
+</div>
+</div>
+
+<script>
+window.onload = () => go('login');
+
+function go(id){
+  document.querySelectorAll('.card').forEach(c => c.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function login(){
+  let phone = document.getElementById("phone").value.trim();
+  let country = document.getElementById("country").value.trim();
+  let location = document.getElementById("location").value.trim();
+
+  if(phone === "" || country === "" || location === ""){
+    alert("Please fill all login details");
+    return;
+  }
+
+  if(phone.length !== 10){
+    alert("Mobile number must be exactly 10 digits");
+    return;
+  }
+
+  if(isNaN(phone)){
+    alert("Mobile number should contain only numbers");
+    return;
+  }
+
+  localStorage.setItem("userPhone", phone);
+  go('services');
+}
+
+function saveLand(){
+  let file = photo.files[0];
+  if(!file){
+    alert("Please upload land photo");
+    return;
+  }
+
+  let phone = localStorage.getItem("userPhone");
+
+  let reader = new FileReader();
+  reader.onload = function(){
+    let lands = JSON.parse(localStorage.getItem('lands') || '[]');
+    lands.push({
+      name: fname.value,
+      location: loc.value,
+      area: area.value,
+      soil: soil.value,
+      price: price.value,
+      phone: phone,
+      image: reader.result
+    });
+    localStorage.setItem('lands', JSON.stringify(lands));
+    alert("Land Added Successfully");
+    go('services');
+  };
+  reader.readAsDataURL(file);
+}
+
+function showLands(){
+  go('taker');
+  let lands = JSON.parse(localStorage.getItem('lands') || '[]');
+  landList.innerHTML = "";
+
+  if(lands.length === 0){
+    landList.innerHTML = "<p>No lands available</p>";
+    return;
+  }
+
+  lands.forEach(l=>{
+    landList.innerHTML += `
+      <div class="card">
+        <img src="${l.image}">
+        <b>${l.name}</b><br>
+        📍 Location: ${l.location}<br>
+        🌾 Area: ${l.area} acres<br>
+        🪴 Soil Type: ${l.soil}<br>
+        💰 Price: ₹${l.price}<br>
+        📞 Phone: ${l.phone}
+      </div>`;
+  });
+}
+</script>
+
+</body>
+</html>
